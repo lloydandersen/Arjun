@@ -1,0 +1,42 @@
+name: Generate Results
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  generate-results:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+    - name: Set up Python
+      run: uv python install 3.9
+
+    - name: Install dependencies
+      run: uv sync
+
+    - name: Make scripts executable
+      run: |
+        chmod +x run.sh
+        chmod +x generate_results.sh
+
+    - name: Generate private_results.txt
+      run: uv run ./generate_results.sh
+
+    - name: Upload private_results.txt
+      uses: actions/upload-artifact@v4
+      with:
+        name: private-results
+        path: private_results.txt
+        if-no-files-found: error
