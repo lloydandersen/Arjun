@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  test-and-generate:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,15 +20,26 @@ jobs:
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
     - name: Set up Python
-      run: uv python install 3.9  # Adjust Python version if needed
+      run: uv python install 3.9  # Adjust if challenge specifies a different version
 
     - name: Install dependencies
       run: uv sync
 
-    - name: Make eval.sh and run.sh executable
+    - name: Make scripts executable
       run: |
         chmod +x eval.sh
         chmod +x run.sh
+        chmod +x generate_results.sh
 
     - name: Run eval.sh
-      run: ./eval.sh
+      run: uv run ./eval.sh
+
+    - name: Generate results
+      run: uv run ./generate_results.sh
+
+    - name: Upload private_results.txt
+      uses: actions/upload-artifact@v4
+      with:
+        name: private_results
+        path: private_results.txt
+        if-no-files-found: error
